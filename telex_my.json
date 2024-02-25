@@ -1,0 +1,63 @@
+{
+  "devices": {
+    "screen": {
+      "type": "screen",
+      "enable": true,
+      "show_BuZi": true,
+      "show_ctrl": true,
+      "show_info": false,
+      "show_capital": true
+    },
+    "RPiPhone": {
+      "type": "phone",
+      "enable": true,
+      "pin_hangup": 13
+    },
+    "RPiTTY": {
+      "type": "RPiTTY",
+      "enable": true,
+      "mode": "TW39",
+      "pin_txd": 17,
+      "pin_rxd": 27,
+      "inv_txd": false,
+      "inv_rxd": false,
+      "pin_relay": 6,
+      "inv_relay": false,
+      "pin_number_switch": -1,
+      "baudrate": 50,
+      "coding": 0,
+      "loopback": true,
+      "use_observe_line": false
+    },
+    "RPiCtrl": {
+      "type": "RPiCtrl",
+      "enable": true,
+      "pin_number_switch": 5,
+      "inv_number_switch": false,
+      "pin_button_1T": 0,
+      "pin_button_AT": 25,
+      "pin_button_ST": 7,
+      "pin_button_LT": 8,
+      "pin_LED_A": 23,
+      "pin_LED_WB": 24,
+      "pin_LED_LT": 16,
+      "pin_LED_status_R": 0,
+      "pin_LED_status_G": 0
+    },
+    "log": {
+      "type": "log",
+      "enable": true,
+      "filename": "./data.log"
+    },
+    "archive": {
+      "type": "archive",
+      "enable": true,
+      "path": "./archive/"
+    }
+  },
+    "wru_id": "12345 dummy d",
+    "wru_replace_always": false,
+    "dial_timeout": 0,
+    "continue_with_no_printer": false,
+    "errorlog_path": "./errorlog/"
+}

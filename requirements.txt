@@ -8,5 +8,5 @@ numpy
 scipy
 matplotlib
 colorama
-msvcrt
-termios
+#msvcrt
+#termios

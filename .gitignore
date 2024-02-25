@@ -113,3 +113,5 @@ error_log/
 
 # Archive
 archive/
+
+.idea

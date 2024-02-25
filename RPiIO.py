@@ -121,7 +121,7 @@ class Button():
     callback:
         def _callback_button([self,] gpio, level, tick):
     '''
-    def __init__(self, pin, callback):
+    def __init__(self, pin, callback, *, release_callback=None):
         #super().__init__()
 
         self._pin = pin
@@ -133,12 +133,17 @@ class Button():
         #    if pi.read(self._pin):
         #        break
         self._cb = pi.callback(pin, pigpio.FALLING_EDGE, callback)
+        self._rcb = pi.callback(pin, pigpio.RISING_EDGE, release_callback) if release_callback else None
 
     def __del__(self):
         self._cb.cancel()   # disable
+        self._rcb.cancel() if self._rcb else None
 
     def is_pressed(self):
         return pi.read(self._pin) == 0
+
+    def is_released(self):
+        return pi.read(self._pin) == 1
 
 #######
 
