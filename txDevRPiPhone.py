@@ -1,8 +1,10 @@
 import os
 import threading
+from pathlib import Path
+
 import pyaudio
 import txBase
-import wave
+import pyaudio as audio
 from pyaudio_silent import PyAudioSilent
 from RPiIO import Button, pi_exit
 
@@ -13,8 +15,9 @@ l = logging.getLogger("piTelex." + __name__)
 
 class SongThread(threading.Thread):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pickup_palyback_file, *args, **kwargs):
         super(SongThread, self).__init__(*args, **kwargs)
+        self._pickup_palyback_file = pickup_palyback_file
         self._stop_event = threading.Event()
 
     def stop(self):
@@ -29,15 +32,17 @@ class SongThread(threading.Thread):
     def _play_song(self):
         # ffmpeg -i song.mp3 -acodec pcm_u8 -ar 22050 song.wav
         chunk_size = 1024
-        with PyAudioSilent() as audio:
-            output = audio.open(format=pyaudio.paUInt8,
-                                channels=1,
-                                rate=44100,
-                                output=True)
-            with open('song.wav', 'rb') as fh:
-                while fh.tell() != os.path.getsize(
-                        fh.name) and not self.stopped():  # get the file-size from the os module
+        sound_file = Path(__file__).parent / self._pickup_palyback_file
+        if sound_file.is_file():
+            with PyAudioSilent() as audio:
+                output = audio.open(format=pyaudio.paUInt8,
+                                    channels=1,
+                                    rate=44100,
+                                    output=True)
+            with open(sound_file, 'rb') as fh:
+                while fh.tell() != os.path.getsize(fh.name) and not self.stopped():
                     output.write(fh.read(chunk_size))
+            audio.terminate()
 
 
 class TelexRPiPhone(txBase.TelexBase):
@@ -49,6 +54,7 @@ class TelexRPiPhone(txBase.TelexBase):
         self.params = params
 
         self._pin_hangup = params.get('pin_hangup', 0)
+        self._pickup_palyback_file = params.get('pickup_palyback_file')
         print(self._pin_hangup)
         self._button_hangup = Button(self._pin_hangup, self._callback_button_hangup,
                                      release_callback=self._callback_button_hangup_release)
@@ -70,7 +76,7 @@ class TelexRPiPhone(txBase.TelexBase):
     def _callback_button_hangup(self, gpio, level, tick):
         if self.thread:
             self.thread.stop()
-        self.thread = SongThread()
+        self.thread = SongThread(self._pickup_palyback_file)
         self.thread.start()
 
     def _callback_button_hangup_release(self, gpio, level, tick):

@@ -8,10 +8,12 @@ Documentation=https://github.com/fablab-wue/piTelex/wiki/
 
 [Service]
 Type=forking
-User=pi
-Group=pi
-WorkingDirectory=/home/pi/piTelex/
-ExecStart=/usr/bin/byobu-screen -d -m -S piTelex /home/pi/piTelex/telex.py
+User=andrew
+Group=andrew
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+Environment="PULSE_RUNTIME_PATH=/run/user/1000/pulse/"
+WorkingDirectory=/home/andrew/piTelex/
+ExecStart=/usr/bin/screen -d -m -S piTelex /home/andrew/piTelex/telex.py -c /home/andrew/piTelex/telex_my.json
 Restart=always
 RestartSec=10
 

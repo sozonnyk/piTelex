@@ -1,5 +1,10 @@
 {
   "devices": {
+    "news": {
+      "type": "news",
+      "enable": true,
+      "newspath": "/home/andrew/piTelex/RSS-feed/news/"
+    },
     "screen": {
       "type": "screen",
       "enable": true,
@@ -11,7 +16,8 @@
     "RPiPhone": {
       "type": "phone",
       "enable": true,
-      "pin_hangup": 13
+      "pin_hangup": 13,
+      "pickup_palyback_file": "phone/song.wav"
     },
     "RPiTTY": {
       "type": "RPiTTY",
@@ -27,7 +33,8 @@
       "baudrate": 50,
       "coding": 0,
       "loopback": true,
-      "use_observe_line": false
+      "use_observe_line": false,
+      "WB_pulse_length": 20
     },
     "RPiCtrl": {
       "type": "RPiCtrl",
@@ -55,9 +62,9 @@
       "path": "./archive/"
     }
   },
-    "wru_id": "12345 dummy d",
-    "wru_replace_always": false,
-    "dial_timeout": 0,
-    "continue_with_no_printer": false,
-    "errorlog_path": "./errorlog/"
+  "wru_id": "12345 dummy d",
+  "wru_replace_always": false,
+  "dial_timeout": 0,
+  "continue_with_no_printer": false,
+  "errorlog_path": "./errorlog/"
 }
