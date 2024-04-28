@@ -13,10 +13,40 @@
       "show_info": false,
       "show_capital": true
     },
+    "VFD": {
+      "type": "terminal",
+      "enable": true,
+      "portname": "/dev/ttyUSB0",
+      "baudrate": 9600,
+      "bytesize": 8,
+      "stopbits": 1,
+      "parity": "N",
+      "dsrdtr": false,
+      "rtscts": true,
+      "xonxoff": false,
+      "show_BuZi": true,
+      "show_ctrl": true,
+      "show_info": false,
+      "show_capital": true,
+      "send_only": false,
+      "init": "[0C][1B 40]-= piTelex VFD =-\r\n",
+      "replace_char": {
+        "<": "[DC]",
+        ">": "[DF]",
+        "~": "[F8]",
+        "%": "[DB]",
+        " ": "_"
+      },
+      "replace_esc": {
+        "ZZ": "[0C]"
+      }
+    },
     "RPiPhone": {
       "type": "phone",
       "enable": true,
       "pin_hangup": 13,
+      "pin_ring_a": 12,
+      "pin_ring_b": 26,
       "pickup_palyback_file": "phone/song.wav"
     },
     "RPiTTY": {

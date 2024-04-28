@@ -1,12 +1,11 @@
 import os
 import threading
 from pathlib import Path
-
+import time
 import pyaudio
 import txBase
-import pyaudio as audio
 from pyaudio_silent import PyAudioSilent
-from RPiIO import Button, pi_exit
+from RPiIO import Button, pi_exit, Ringer
 
 import logging
 
@@ -48,16 +47,20 @@ class SongThread(threading.Thread):
 class TelexRPiPhone(txBase.TelexBase):
     def __init__(self, **params):
         super().__init__()
-
         self.thread = None
         self.id = 'piPh'
         self.params = params
+        self.start = time.time()
 
         self._pin_hangup = params.get('pin_hangup', 0)
         self._pickup_palyback_file = params.get('pickup_palyback_file')
-        print(self._pin_hangup)
         self._button_hangup = Button(self._pin_hangup, self._callback_button_hangup,
                                      release_callback=self._callback_button_hangup_release)
+
+        self._pin_ring_a = params.get('pin_ring_a', 0)
+        self._pin_ring_b = params.get('pin_ring_b', 0)
+        self._ringer = Ringer(self._pin_ring_a, self._pin_ring_b)
+
 
     def exit(self):
         global pi
@@ -68,7 +71,9 @@ class TelexRPiPhone(txBase.TelexBase):
             pi_exit()
 
     def idle20Hz(self):
-        pass
+        # startup chime
+        if time.time() < self.start + 0.5:
+            self._ringer.ring()
 
     def idle(self):
         pass
