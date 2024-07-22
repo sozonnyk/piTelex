@@ -20,19 +20,13 @@ class Weather():
         ftp.retrbinary("RETR " + self.filename, self.content_retr)
         ftp.quit()
 
-
-
-    def print(self):
+    def forecast(self):
         self.get()
         content = self.content.decode("utf-8")
         delim = "\n\n"
         split_forecast = content.split(delim)
         forecast_idxs = [i for i, x in enumerate(split_forecast) if "Forecast" in x]
-
-        print("\n".join(split_forecast[forecast_idxs[1]:forecast_idxs[2]]))
-        print("\n")
-        print("\n".join(split_forecast[forecast_idxs[2]:forecast_idxs[3]]))
-
-
-w = Weather()
-w.print()
+        # 69 characters per line
+        result = "\r\n".join(split_forecast[forecast_idxs[1]:forecast_idxs[2]])
+        result += "\r\n".join(split_forecast[forecast_idxs[2]:forecast_idxs[3]])
+        return result

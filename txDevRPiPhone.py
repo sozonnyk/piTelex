@@ -72,7 +72,7 @@ class TelexRPiPhone(txBase.TelexBase):
 
     def idle20Hz(self):
         # startup chime
-        if time.time() < self.start + 0.5:
+        if time.time() < self.start + 1:
             self._ringer.ring()
 
     def idle(self):
