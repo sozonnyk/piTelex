@@ -119,6 +119,7 @@ class TelexRPiCtrl(txBase.TelexBase):
 
         self._number_switch = None
         if self._pin_number_switch:
+            print(self._pin_number_switch)
             self._number_switch = NumberSwitch(self._pin_number_switch, self._callback_number_switch, self._inv_number_switch)
 
         if self._pin_power:

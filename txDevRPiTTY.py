@@ -97,7 +97,7 @@ class TelexRPiTTY(txBase.TelexBase):
         self._mc = txCode.BaudotMurrayCode(self._loopback, coding=self._coding, character_duration=self._character_duration)
 
         # init GPIOs
-
+        print(self._pin_rxd)
         pi.set_mode(self._pin_rxd, pigpio.INPUT)
         pi.set_pull_up_down(self._pin_rxd, pigpio.PUD_UP)
         pi.set_glitch_filter(self._pin_rxd, 50000 // self._baudrate)   # 1ms @ 50Bd

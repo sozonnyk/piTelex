@@ -21,8 +21,8 @@
       "enable": true,
       "show_BuZi": true,
       "show_ctrl": true,
-      "show_info": false,
-      "show_capital": false
+      "show_info": true,
+      "show_capital": true
     },
 
     ###########################################################################

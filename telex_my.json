@@ -1,0 +1,95 @@
+{
+  "devices": {
+    "news": {
+      "type": "news",
+      "enable": true,
+      "newspath": "/home/andrew/piTelex/RSS-feed/news/"
+    },
+    "screen": {
+      "type": "screen",
+      "enable": true,
+      "show_BuZi": true,
+      "show_ctrl": true,
+      "show_info": false,
+      "show_capital": true
+    },
+    "VFD": {
+      "type": "terminal",
+      "enable": true,
+      "portname": "/dev/ttyUSB0",
+      "baudrate": 9600,
+      "bytesize": 8,
+      "stopbits": 1,
+      "parity": "N",
+      "dsrdtr": false,
+      "rtscts": true,
+      "xonxoff": false,
+      "show_BuZi": false,
+      "show_ctrl": false,
+      "show_info": false,
+      "show_capital": true,
+      "send_only": false,
+      "init": "[0C][1B 40]-= piTelex VFD =-\r\n",
+      "replace_char": {
+      },
+      "replace_esc": {
+        "ZZ": "[0C]"
+      }
+    },
+    "RPiPhone": {
+      "type": "phone",
+      "enable": true,
+      "pin_hangup": 13,
+      "pin_ring_a": 12,
+      "pin_ring_b": 26,
+      "pickup_palyback_file": "phone/song.wav"
+    },
+    "RPiTTY": {
+      "type": "RPiTTY",
+      "enable": true,
+      "mode": "TW39",
+      "pin_txd": 17,
+      "pin_rxd": 27,
+      "inv_txd": false,
+      "inv_rxd": false,
+      "pin_relay": 6,
+      "inv_relay": false,
+      "pin_number_switch": -1,
+      "baudrate": 50,
+      "coding": 0,
+      "loopback": true,
+      "use_observe_line": false,
+      "WB_pulse_length": 20
+    },
+    "RPiCtrl": {
+      "type": "RPiCtrl",
+      "enable": true,
+      "pin_number_switch": 5,
+      "inv_number_switch": false,
+      "pin_button_1T": 0,
+      "pin_button_AT": 25,
+      "pin_button_ST": 7,
+      "pin_button_LT": 8,
+      "pin_LED_A": 23,
+      "pin_LED_WB": 24,
+      "pin_LED_LT": 16,
+      "pin_LED_status_R": 0,
+      "pin_LED_status_G": 0
+    },
+    "log": {
+      "type": "log",
+      "enable": true,
+      "filename": "./data.log"
+    },
+    "archive": {
+      "type": "archive",
+      "enable": true,
+      "path": "./archive/"
+    }
+  },
+  "wru_id": "12345 dummy d",
+  "wru_replace_always": false,
+  "dial_timeout": 0,
+  "continue_with_no_printer": false,
+  "errorlog_path": "./errorlog/"
+}

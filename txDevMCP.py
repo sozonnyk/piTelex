@@ -13,6 +13,9 @@ import os
 import sys
 
 import logging
+
+from weather import Weather
+
 l = logging.getLogger("piTelex." + __name__)
 
 import txCode
@@ -334,6 +337,7 @@ class TelexMCP(txBase.TelexBase):
             else:
                 self._wd.restart('POWER')
             self.enable_cli(False)
+            self._rx_buffer.clear()
 
             if broadcast_state:
                 self._send_control_sequence('Z')
@@ -468,6 +472,15 @@ class TelexMCP(txBase.TelexBase):
                     self._dial_number = ''
                 elif self._dial_number == '009':   # 009 - command line interface
                     self.enable_cli(True)
+                    self._dial_number = ''
+                elif self._dial_number == '002':
+                    self._set_state(S_ACTIVE_INIT, True)
+                    self._rx_buffer.extend(txCode.BaudotMurrayCode.translate(Weather().forecast()))
+                elif self._dial_number == '001':
+                    self.send_abort(last_words="\r\n\r\nDial:\r\n"
+                                               "000 - local mode\r\n"
+                                               "002 - weather\r\n"
+                                               "009 - command line\r\n\r\n")
                     self._dial_number = ''
             else:
                 if self._dial_timeout > 0 or name.endswith('DIREKT'):

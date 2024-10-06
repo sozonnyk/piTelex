@@ -260,6 +260,11 @@ def init():
             keypad = txDevKeyPad.TelexKeyPad(**dev_param)
             DEVICES.append(keypad)
 
+        elif dev_param['type'] == 'phone':
+            import txDevRPiPhone
+            phone = txDevRPiPhone.TelexRPiPhone(**dev_param)
+            DEVICES.append(phone)
+
         else:
             l.warning("Unknown module type in configuration, section {!r}: {!r}".format(dev_name, dev_param['type']))
 

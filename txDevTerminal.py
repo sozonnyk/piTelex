@@ -77,11 +77,12 @@ class TelexTerminal(txBase.TelexBase):
         if RS485:
             self._tty.rs485_mode = serial.rs485.RS485Settings()
 
+        self.char_count = 0
+
         text = params.get('init', '')
         if text:
             self._write_hextext(text)
         
-        self.char_count = 0
 
     # -----
 

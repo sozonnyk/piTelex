@@ -79,7 +79,6 @@ class TelexNews(txBase.TelexBase):
         self._observer.schedule(self.EventHandler(self._news_buffer), path=self._newspath, recursive=True)
         self._observer.start()
 
-
     def __del__(self):
         self.exit()
         super().__del__()
