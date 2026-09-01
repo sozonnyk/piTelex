@@ -117,3 +117,4 @@ archive/
 # Visual Studio
 .vs
 *.pyproj.user
+.idea
