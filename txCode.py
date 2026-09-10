@@ -39,7 +39,7 @@ class BaudotMurrayCode:
     )
     _LUT_BM2A_T100 = (
         "°E\nA SIU\rDRJNFCKTZLWHYPQOBG>MXV<",
-        "°3\n- '87\r@4?:%)%5£$2£6019/$>=(+<"
+        "°3\n= '87\r@4°,%:(5+)2£6019?$>./=<"
     )
     # Baudot-Murray-Code mode switch codes
     _LUT_BMsw_ITA2 = (0x1F, 0x1B)
@@ -165,7 +165,6 @@ class BaudotMurrayCode:
         self._loop_back_eat_bytes = 0
         self._loop_back_expire_time = 0
         self._character_duration = character_duration
-        self._LUT_A2BM_override = {}
         try:
             coding_id = int(coding)
         except (TypeError, ValueError):
@@ -184,11 +183,6 @@ class BaudotMurrayCode:
         elif coding_id == self.CODING_T100 or coding_name in ('T100', 'SIEMENS_T100'):
             self._LUT_BM2A = self._LUT_BM2A_T100
             self._LUT_BMsw = self._LUT_BMsw_T100
-            self._LUT_A2BM_override = {
-                '%': (1, 13),  # figures-F
-                '$': (1, 26),  # figures-G
-                '£': (1, 20),  # figures-H
-            }
         else:
             self._LUT_BM2A = self._LUT_BM2A_ITA2
             self._LUT_BMsw = self._LUT_BMsw_ITA2
@@ -215,14 +209,6 @@ class BaudotMurrayCode:
 
         for a in ascii:
             try:  # symbol in current layer?
-                if a in self._LUT_A2BM_override:
-                    nm, b = self._LUT_A2BM_override[a]
-                    if self._mode != nm:
-                        ret.append(self._LUT_BMsw[nm])
-                        self._mode = nm
-                    ret.append(b)
-                    continue
-
                 nm = self._mode
                 b = self._LUT_BM2A[nm].index(a)
                 ret.append(b)
