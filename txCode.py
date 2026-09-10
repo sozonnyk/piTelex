@@ -37,15 +37,20 @@ class BaudotMurrayCode:
         "#E\nA SIU\rDRJNFCKTZLWHYPQOBG>MXV<",
         "*3\n- '87\r@4;,[:(5+)2^6019µ]>./=<"
     )
+    _LUT_BM2A_T100 = (
+        "°E\nA SIU\rDRJNFCKTZLWHYPQOBG>MXV<",
+        "°3\n- '87\r@4?:°)%5£$2°6019/°>=(+<"
+    )
     # Baudot-Murray-Code mode switch codes
     _LUT_BMsw_ITA2 = (0x1F, 0x1B)
     _LUT_BMsw_US = (0x1F, 0x1B)
     _LUT_BMsw_MKT2 = (0x1F, 0x1B, 0x00)
     _LUT_BMsw_ZUSE = (0x1F, 0x1B)
+    _LUT_BMsw_T100 = (0x1F, 0x1B)
 
     # Baudot-Murray-Code valid ASCII table
     #_valid_char = " ABCDEFGHIJKLMNOPQRSTUVWXYZ°3\n- '87\r@4%,:(5+)26019?]./=[#"
-    _valid_ASCII_convert_chars = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+=:/()?.,'\n\r@°"
+    _valid_ASCII_convert_chars = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+=:/()?.,'%$£\n\r@°"
     _LUT_convert_chars = {
         'Ä': 'AE',
         'Ö': 'OE',
@@ -61,7 +66,6 @@ class BaudotMurrayCode:
         '\x08': '(BS)',   # Backspace
         '&': '(AND)',
         '€': '(EUR)',
-        '$': '(USD)',
         '<': '(LT)',
         '>': '(GT)',
         '|': '(PIPE)',
@@ -77,7 +81,6 @@ class BaudotMurrayCode:
         '»': "'",   # inserted 25-04-28 rowo as suggested in issue #32 by ketzer128
         ';': ',.',
         '!': '(./)',
-        '%': '(./.)',
         '[': '(',
         ']': ')',
         '{': '-(',
@@ -90,6 +93,7 @@ class BaudotMurrayCode:
     CODING_US = 1
     CODING_MKT2 = 2
     CODING_ZUSE = 3
+    CODING_T100 = 4
 
     # =====
 
@@ -161,15 +165,24 @@ class BaudotMurrayCode:
         self._loop_back_eat_bytes = 0
         self._loop_back_expire_time = 0
         self._character_duration = character_duration
-        if coding == self.CODING_US:
+        try:
+            coding_id = int(coding)
+        except (TypeError, ValueError):
+            coding_id = None
+        coding_name = str(coding).upper()
+
+        if coding_id == self.CODING_US or coding_name == 'US':
             self._LUT_BM2A = self._LUT_BM2A_US
             self._LUT_BMsw = self._LUT_BMsw_US
-        elif coding == self.CODING_MKT2:
+        elif coding_id == self.CODING_MKT2 or coding_name == 'MKT2':
             self._LUT_BM2A = self._LUT_BM2A_MKT2
             self._LUT_BMsw = self._LUT_BMsw_MKT2
-        elif coding == self.CODING_ZUSE:
+        elif coding_id == self.CODING_ZUSE or coding_name == 'ZUSE':
             self._LUT_BM2A = self._LUT_BM2A_ZUSE
             self._LUT_BMsw = self._LUT_BMsw_ZUSE
+        elif coding_id == self.CODING_T100 or coding_name in ('T100', 'SIEMENS_T100'):
+            self._LUT_BM2A = self._LUT_BM2A_T100
+            self._LUT_BMsw = self._LUT_BMsw_T100
         else:
             self._LUT_BM2A = self._LUT_BM2A_ITA2
             self._LUT_BMsw = self._LUT_BMsw_ITA2

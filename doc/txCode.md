@@ -64,6 +64,14 @@ Zuese Zi: * [ ] ╳ ⒑ ;
 
 Free on std. keyboard: ²³{}|^°§
 
+piTelex coding values:
+
+- 0: ITA2
+- 1: US
+- 2: MKT2
+- 3: Zuse
+- 4: Siemens T100
+
 ### Links
 
 http://rabbit.eng.miami.edu/info/baudot.html   <<< wrong figs order!

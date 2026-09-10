@@ -67,7 +67,7 @@
       "inv_relay": false,
       "pin_number_switch": -1,
       "baudrate": 50,
-      "coding": 0,
+      "coding": 4,
       "loopback": true,
       "use_observe_line": false,
       "WB_pulse_length": 20
