@@ -49,3 +49,11 @@ enabling the following option in raspi-config additionally:
 
 - 3 Boot Options
 - B2 Wait for Network at Boot
+
+Web module port forwarding:
+
+On Raspberry Pi OS 12 (bookworm), iptables may not be installed. To expose the
+piTelex web module on plain HTTP port 80 while it listens on port 8080, install
+the nftables redirect:
+
+sudo utils/systemd/setup-web-port-forward.sh
