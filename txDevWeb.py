@@ -112,6 +112,14 @@ button:disabled {
   opacity: 0.55;
 }
 
+button.attach {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
 .file-input {
   display: none;
 }
@@ -208,7 +216,7 @@ textarea {
   <form id="form" class="composer">
     <textarea id="text" maxlength="800" placeholder="Message"></textarea>
     <input id="file" class="file-input" type="file" accept=".txt,text/plain">
-    <button id="attach" type="button">Attach</button>
+    <button id="attach" class="attach" type="button" title="Attach text file" aria-label="Attach text file">+</button>
     <button class="primary" type="submit">Send</button>
   </form>
 </main>
@@ -496,7 +504,7 @@ class TelexWeb(txBase.TelexBase):
                 self._add_event_locked('system', 'Chat started')
 
             self._add_event_locked('web', 'Attached file: {}'.format(filename))
-            self._rx_buffer.extend(self._format_file_for_teletype(text))
+            self._rx_buffer.extend(self._format_file_for_teletype(filename, text))
 
     # -----
 
@@ -644,8 +652,21 @@ class TelexWeb(txBase.TelexBase):
 
     # -----
 
-    def _format_file_for_teletype(self, text):
-        return '\r\n\r\n' + text
+    def _format_file_for_teletype(self, filename, text):
+        filename = txCode.BaudotMurrayCode.translate(filename).strip()
+        text = self._normalize_file_line_endings(text)
+        header = 'ATTACHMENT START: {}'.format(filename)
+        footer = 'ATTACHMENT END: {}'.format(filename)
+
+        if text and not text.endswith('\r\n'):
+            text += '\r\n'
+
+        return '\r\n\r\n' + header + '\r\n' + text + footer + '\r\n'
+
+    # -----
+
+    def _normalize_file_line_endings(self, text):
+        return text.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\r\n')
 
     # -----
 
