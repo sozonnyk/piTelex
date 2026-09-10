@@ -8,6 +8,7 @@ __copyright__   = "Copyright 2018, JK"
 __license__     = "GPL3"
 __version__     = "0.0.1"
 
+import os
 import time
 # pip install watchdog
 from watchdog.observers import Observer
@@ -74,6 +75,8 @@ class TelexNews(txBase.TelexBase):
         self._rx_buffer = []
         self._news_buffer = []
         self._state_counter = 1
+
+        os.makedirs(self._newspath, exist_ok=True)
         l.info('monitoring news directory: ' + self._newspath)
 
         self._observer = Observer()
@@ -122,4 +125,3 @@ class TelexNews(txBase.TelexBase):
                 self._rx_buffer.append('\x1bST')
 
 #######
-

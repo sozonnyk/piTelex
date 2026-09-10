@@ -3,7 +3,7 @@
     "news": {
       "type": "news",
       "enable": true,
-      "newspath": "/home/andrew/piTelex/RSS-feed/news/"
+      "newspath": "/home/andrew/piTelex/utils/RSS-feed/news/"
     },
     "screen": {
       "type": "screen",
