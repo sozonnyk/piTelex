@@ -238,6 +238,7 @@ class TelexRPiCtrl(txBase.TelexBase):
     # -----
 
     def _set_mode(self, mode:str):
+        old_mode = self._mode
         self._mode = mode
         if mode in ('A', 'AA'):
             if self._LED_Z:
@@ -248,13 +249,17 @@ class TelexRPiCtrl(txBase.TelexBase):
                 self._LED_WB.off()
             if self._LED_WB_A:
                 self._LED_WB_A.on()
-            if self._LED_LT and self._LT_pressed:
-                self._LED_LT.on()
-                self._LT_pressed = False
+            if self._LED_LT:
+                if self._LT_pressed:
+                    self._LED_LT.on()
+                elif old_mode not in ('A', 'AA'):
+                    self._LED_LT.off()
+            self._LT_pressed = False
             if self._number_switch:
                 self._number_switch.enable(False)
 
         if mode in ('Z', 'ZZ'):
+            self._LT_pressed = False
             if self._LED_Z:
                 self._LED_Z.on()
             if self._LED_A:
@@ -269,6 +274,7 @@ class TelexRPiCtrl(txBase.TelexBase):
                 self._number_switch.enable(False)
 
         if mode in ('WB',):
+            self._LT_pressed = False
             if self._LED_Z:
                 self._LED_Z.off()
             if self._LED_A:
@@ -305,6 +311,9 @@ class TelexRPiCtrl(txBase.TelexBase):
     def _callback_button_ST(self, gpio, level, tick):
         if level == 1:
             return
+        self._LT_pressed = False
+        if self._LED_LT:
+            self._LED_LT.off()
         if self._delay_ST:
             self._wd.restart(name="DELAY_ST")
         else:
@@ -401,4 +410,3 @@ class TelexRPiCtrl(txBase.TelexBase):
             pi.write(self._pin_power, enable != self._inv_power)   # pos polarity
 
 #######
-

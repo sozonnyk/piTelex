@@ -5,11 +5,13 @@ import time
 import pyaudio
 import txBase
 from pyaudio_silent import PyAudioSilent
-from RPiIO import Button, pi_exit, Ringer
+from RPiIO import Button, pi, pi_exit, Ringer
 
 import logging
 
 l = logging.getLogger("piTelex." + __name__)
+
+RING_COMMAND = '\x1b.RING'
 
 
 class SongThread(threading.Thread):
@@ -51,6 +53,10 @@ class TelexRPiPhone(txBase.TelexBase):
         self.id = 'piPh'
         self.params = params
         self.start = time.time()
+        self._startup_ring_until = self.start + float(params.get('startup_ring_duration', 1.0))
+        self._ring_duration = float(params.get('ring_duration', 4.0))
+        self._ring_until = 0
+        self._is_ringing = False
 
         self._pin_hangup = params.get('pin_hangup', 0)
         self._pickup_palyback_file = params.get('pickup_palyback_file')
@@ -66,17 +72,31 @@ class TelexRPiPhone(txBase.TelexBase):
         global pi
 
         if pi:
+            self._ringer_off()
             del pi
             pi = None
             pi_exit()
 
     def idle20Hz(self):
-        # startup chime
-        if time.time() < self.start + 1:
+        now = time.time()
+        if now < self._startup_ring_until or now < self._ring_until:
             self._ringer.ring()
+            self._is_ringing = True
+        elif self._is_ringing:
+            self._ringer_off()
+            self._is_ringing = False
+
+    def write(self, a:str, source:str):
+        if len(a) != 1 and a == RING_COMMAND:
+            self._ring_until = time.time() + self._ring_duration
+            return True
 
     def idle(self):
         pass
+
+    def _ringer_off(self):
+        pi.write(self._pin_ring_a, 0)
+        pi.write(self._pin_ring_b, 0)
 
     def _callback_button_hangup(self, gpio, level, tick):
         if self.thread:

@@ -42,7 +42,18 @@
       "pin_hangup": 13,
       "pin_ring_a": 12,
       "pin_ring_b": 26,
-      "pickup_palyback_file": "phone/song.wav"
+      "pickup_palyback_file": "phone/song.wav",
+      "ring_duration": 4.0
+    },
+    "web": {
+      "type": "web",
+      "enable": true,
+      "host": "0.0.0.0",
+      "port": 8080,
+      "title": "Teletype Chat",
+      "input_sources": ["piT", "Trm", "Scn"],
+      "line_width": 69,
+      "max_message_chars": 800
     },
     "RPiTTY": {
       "type": "RPiTTY",

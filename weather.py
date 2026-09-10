@@ -1,5 +1,21 @@
-import re
 import ftplib
+import txCode
+
+LINE_WIDTH = 69
+
+def wrap_tty_line(line: str, width: int = LINE_WIDTH) -> list:
+    lines = []
+    line = txCode.BaudotMurrayCode.translate(line).strip()
+
+    while len(line) > width:
+        split_at = line.rfind(" ", 0, width + 1)
+        if split_at <= 0:
+            split_at = width
+        lines.append(line[:split_at].strip())
+        line = line[split_at:].strip()
+
+    lines.append(line)
+    return lines
 
 class Weather():
     def __init__(self):
@@ -22,7 +38,7 @@ class Weather():
 
     def forecast(self):
         self.get()
-        content = self.content.decode("utf-8")
+        content = self.content.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
         delim = "\n\n"
         split_forecast = content.split(delim)
         forecast_idxs = [i for i, x in enumerate(split_forecast) if "Forecast" in x]
@@ -33,12 +49,12 @@ class Weather():
 
         trimmed_result_list=[]
         for line in result_list:
-            trimmed_result_list += [x.strip() for x in line.split("\r\n")]
+            trimmed_result_list += [x.strip() for x in line.splitlines()]
 
-        # 69 characters per line
+        # Wrap after teletype translation so expanded replacement text counts.
         shortened_result_list=[]
         for line in trimmed_result_list:
-            shortened_result_list += [line[i:i+68] for i in range(0, len(line), 68)]
+            shortened_result_list += wrap_tty_line(line)
 
         return "\r\n".join(shortened_result_list)
 

@@ -104,6 +104,7 @@ class TelexMCP(txBase.TelexBase):
 
         self._hand_type_buffer = []
         self._hand_type_wait = -1
+        self._stop_after_local_print = False
 
         self._last_char_was_cr = False
         self._cr_count = 0
@@ -188,6 +189,14 @@ class TelexMCP(txBase.TelexBase):
                 # triggering before the teleprinter's has had a chance
                 if self._wd.is_active('WRU'):
                     self._wd.restart('WRU')
+                if self._stop_after_local_print and a.startswith('~') and not self._rx_buffer:
+                    try:
+                        printer_buffer_size = int(a[1:])
+                    except (TypeError, ValueError):
+                        pass
+                    else:
+                        if printer_buffer_size == 0:
+                            self._set_state(S_OFFLINE, True)
                 return
 
             if a == '...':   # printer busy
@@ -372,6 +381,7 @@ class TelexMCP(txBase.TelexBase):
         # enter new state
 
         if new_state == S_SLEEPING:
+            self._stop_after_local_print = False
             self._send_control_sequence('TP0')   # send power off
             self._wd.disable('POWER')
 
@@ -379,6 +389,7 @@ class TelexMCP(txBase.TelexBase):
                 self._send_control_sequence('ZZ')
 
         elif new_state == S_OFFLINE:
+            self._stop_after_local_print = False
             self._wd.disable('ACTIVE')
             self._wd.disable('DIAL')
             self._wd.disable('PRINTER')
@@ -525,7 +536,8 @@ class TelexMCP(txBase.TelexBase):
                     self._dial_number = ''
                 elif self._dial_number == '002':
                     self._set_state(S_ACTIVE_INIT, True)
-                    self._rx_buffer.extend(txCode.BaudotMurrayCode.translate(Weather().forecast()))
+                    self._rx_buffer.extend(Weather().forecast())
+                    self._stop_after_local_print = True
                 elif self._dial_number == '001':
                     self.send_abort(last_words="\r\n\r\nDial:\r\n"
                                                "000 - local mode\r\n"

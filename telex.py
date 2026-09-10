@@ -249,6 +249,11 @@ def init():
             news = txDevREST.TelexREST(**dev_param)
             DEVICES.insert(0,news)
 
+        elif dev_param['type'] == 'web':
+            import txDevWeb
+            web = txDevWeb.TelexWeb(**dev_param)
+            DEVICES.append(web)
+
         elif dev_param['type'] == 'eliza':
             import txDevEliza
             eliza = txDevEliza.TelexEliza(**dev_param)

@@ -166,6 +166,10 @@ class TelexRPiTTY(txBase.TelexBase):
     def write(self, a:str, source:str):
         ''' called by system to output next character or send control sequence '''
         if a:
+            if len(a) > 1 and a[0] == '\x1b' and a[1:] == 'Z':
+                self._check_commands(a[1:])
+                return
+
             if a != '@':
                 if a == '#':   a = '@'   # WRU - ask teletype for hardware ID (KG)
                 self._tx_buffer.append(a)
@@ -243,12 +247,10 @@ class TelexRPiTTY(txBase.TelexBase):
     def idle2Hz(self):
         ''' called by system every 500ms to do background stuff '''
         # send printer FIFO info
-        waiting = int((self._time_EOT - time.monotonic()) / self._character_duration + 0.9)
-        waiting += len(self._tx_buffer)   # estimation of left chars in buffer
-
-        # Cap negative waiting times (sending finished in the past)
-        if waiting < 0:
-            waiting = 0
+        waiting = len(self._tx_buffer)   # estimation of left chars in buffer
+        if self._is_writing_wave():
+            wave_waiting = int((self._time_EOT - time.monotonic()) / self._character_duration + 0.9)
+            waiting += max(1, wave_waiting)
 
         # Send buffer updates to i-Telex when teleprinter is active.
         if self._state >= S_ACTIVE_INIT:
@@ -274,6 +276,9 @@ class TelexRPiTTY(txBase.TelexBase):
             self._set_state(S_SLEEPING)
 
         elif a == 'Z':
+            if self._is_writing_wave():
+                pi.wave_tx_stop()
+            self._time_EOT = time.monotonic()
             self._set_state(S_OFFLINE)
             self._tx_buffer = []    # empty write buffer...
             self._send_control_sequence('~0')
@@ -481,4 +486,3 @@ class TelexRPiTTY(txBase.TelexBase):
         print(text, end='')
 
 #######
-
