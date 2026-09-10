@@ -13,6 +13,7 @@ import json
 import logging
 import threading
 import time
+from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -378,14 +379,17 @@ class TelexWeb(txBase.TelexBase):
         self._max_message_chars = int(params.get('max_message_chars', 800))
         self._max_file_chars = int(params.get('max_file_chars', 20000))
         self._max_request_bytes = int(params.get('max_request_bytes', self._max_file_chars * 4 + 4096))
+        self._max_printer_buffer = int(params.get('max_printer_buffer', 240))
         self._ring_command = params.get('ring_command', RING_COMMAND)
         self._teletype_end_sources = set(params.get('teletype_end_sources', ['piC']))
+        self._printer_feedback_sources = set(params.get('printer_feedback_sources', ['piT']))
 
-        self._rx_buffer = []
+        self._rx_buffer = deque()
         self._incoming = ''
         self._events = []
         self._next_event_id = 1
         self._active = False
+        self._printer_buffer_size = 0
         self._lock = threading.RLock()
 
         self._server = ReusableThreadingHTTPServer((self._host, self._port), self._make_handler())
@@ -405,7 +409,13 @@ class TelexWeb(txBase.TelexBase):
     def read(self) -> str:
         with self._lock:
             if self._rx_buffer:
-                return self._rx_buffer.pop(0)
+                a = self._rx_buffer[0]
+                if len(a) == 1 and self._printer_buffer_size >= self._max_printer_buffer:
+                    return
+                a = self._rx_buffer.popleft()
+                if len(a) == 1:
+                    self._printer_buffer_size += 1
+                return a
 
     # -----
 
@@ -415,6 +425,8 @@ class TelexWeb(txBase.TelexBase):
 
         with self._lock:
             if len(a) != 1:
+                if source in self._printer_feedback_sources and a.startswith('\x1b~'):
+                    self._set_printer_buffer_size_locked(a[2:])
                 if a in ('\x1bST', '\x1bZ', '\x1bZZ'):
                     self._finish_chat_locked('Chat ended')
                 elif a == '\x1bWB':
@@ -462,9 +474,13 @@ class TelexWeb(txBase.TelexBase):
     def end_chat(self):
         with self._lock:
             self._finish_incoming_locked()
-            if self._active:
+            was_active = self._active
+            self._rx_buffer.clear()
+            if was_active:
                 self._rx_buffer.append('\x1bST')
-            self._finish_chat_locked('Chat ended', clear_output=False)
+                self._add_event_locked('system', 'Chat ended')
+            self._active = False
+            self._printer_buffer_size = 0
 
     # -----
 
@@ -638,7 +654,8 @@ class TelexWeb(txBase.TelexBase):
     def _clean_file_text(self, text):
         if text is None:
             return ''
-        return str(text)
+        text = self._normalize_file_line_endings(str(text))
+        return txCode.BaudotMurrayCode.translate(text)
 
     # -----
 
@@ -654,7 +671,6 @@ class TelexWeb(txBase.TelexBase):
 
     def _format_file_for_teletype(self, filename, text):
         filename = txCode.BaudotMurrayCode.translate(filename).strip()
-        text = self._normalize_file_line_endings(text)
         header = 'ATTACHMENT START: {}'.format(filename)
         footer = 'ATTACHMENT END: {}'.format(filename)
 
@@ -667,6 +683,14 @@ class TelexWeb(txBase.TelexBase):
 
     def _normalize_file_line_endings(self, text):
         return text.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\r\n')
+
+    # -----
+
+    def _set_printer_buffer_size_locked(self, text):
+        try:
+            self._printer_buffer_size = max(0, int(text))
+        except (TypeError, ValueError):
+            pass
 
     # -----
 
@@ -717,6 +741,7 @@ class TelexWeb(txBase.TelexBase):
             self._rx_buffer.clear()
         self._finish_incoming_locked()
         self._active = False
+        self._printer_buffer_size = 0
         if was_active:
             self._add_event_locked('system', event_text)
 

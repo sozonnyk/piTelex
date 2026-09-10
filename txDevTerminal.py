@@ -158,7 +158,7 @@ class TelexTerminal(txBase.TelexBase):
         if not text:
             return
 
-        bb = text.encode('ASCII')
+        bb = text.encode('ASCII', errors='replace')
             
         if self._auto_CRLF:
             for b in bb:

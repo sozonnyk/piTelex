@@ -54,7 +54,8 @@
       "input_sources": ["piT", "Trm", "Scn"],
       "line_width": 69,
       "max_message_chars": 800,
-      "max_file_chars": 20000
+      "max_file_chars": 20000,
+      "max_printer_buffer": 240
     },
     "RPiTTY": {
       "type": "RPiTTY",
