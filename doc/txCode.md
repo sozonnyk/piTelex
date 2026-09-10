@@ -74,7 +74,7 @@ piTelex coding values:
 
 Siemens T100 figures register used by `coding: 4`:
 
-`ASFGHKLZXCVBNM` -> `='%$£()+/:=?,.`
+`ASFGHKLZXCVBNM` -> `-'%$£()+/:=?,.`
 
 ### Links
 

@@ -39,7 +39,7 @@ class BaudotMurrayCode:
     )
     _LUT_BM2A_T100 = (
         "°E\nA SIU\rDRJNFCKTZLWHYPQOBG>MXV<",
-        "°3\n= '87\r@4°,%:(5+)2£6019?$>./=<"
+        "°3\n- '87\r@4°,%:(5+)2£6019?$>./=<"
     )
     # Baudot-Murray-Code mode switch codes
     _LUT_BMsw_ITA2 = (0x1F, 0x1B)
