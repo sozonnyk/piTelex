@@ -13,6 +13,8 @@ __version__     = "0.0.2"
 
 import serial
 import serial.rs485
+import errno
+import os
 import time
 
 import logging
@@ -49,6 +51,7 @@ class TelexTerminal(txBase.TelexBase):
         self._auto_CRLF = self.params.get('auto_CRLF', 0)
         self._replace_char = self.params.get('replace_char', {})
         self._replace_esc = self.params.get('replace_esc', {})
+        self._drop_on_write_busy = params.get('drop_on_write_busy', True)
 
         self._rx_buffer = []
 
@@ -150,7 +153,20 @@ class TelexTerminal(txBase.TelexBase):
     # =====
 
     def _write_raw(self, bb:bytes):
-        self._tty.write(bb)
+        if isinstance(bb, int):
+            bb = bytes([bb])
+
+        if not self._drop_on_write_busy:
+            self._tty.write(bb)
+            return
+
+        try:
+            os.write(self._tty.fileno(), bb)
+        except BlockingIOError:
+            pass
+        except OSError as e:
+            if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK, errno.EINTR):
+                raise
 
     # -----
 
@@ -163,7 +179,7 @@ class TelexTerminal(txBase.TelexBase):
         if self._auto_CRLF:
             for b in bb:
                 self.char_count += 1
-                if b == b'\r':
+                if b == ord('\r'):
                     self.char_count = 0
                 self._write_raw(b)
                 if self.char_count >= self._auto_CRLF:

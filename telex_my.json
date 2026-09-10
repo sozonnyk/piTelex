@@ -29,6 +29,7 @@
       "show_info": false,
       "show_capital": true,
       "send_only": false,
+      "drop_on_write_busy": true,
       "init": "[0C][1B 40]-= piTelex VFD =-\r\n",
       "replace_char": {
       },
