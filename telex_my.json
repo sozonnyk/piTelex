@@ -53,7 +53,8 @@
       "title": "Teletype Chat",
       "input_sources": ["piT", "Trm", "Scn"],
       "line_width": 69,
-      "max_message_chars": 800
+      "max_message_chars": 800,
+      "max_file_chars": 20000
     },
     "RPiTTY": {
       "type": "RPiTTY",

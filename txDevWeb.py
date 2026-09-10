@@ -112,6 +112,10 @@ button:disabled {
   opacity: 0.55;
 }
 
+.file-input {
+  display: none;
+}
+
 .chat {
   overflow: auto;
   border: 1px solid var(--line);
@@ -203,6 +207,8 @@ textarea {
   <section id="chat" class="chat" aria-live="polite"></section>
   <form id="form" class="composer">
     <textarea id="text" maxlength="800" placeholder="Message"></textarea>
+    <input id="file" class="file-input" type="file" accept=".txt,text/plain">
+    <button id="attach" type="button">Attach</button>
     <button class="primary" type="submit">Send</button>
   </form>
 </main>
@@ -214,6 +220,8 @@ const chat = document.getElementById("chat");
 const statusLine = document.getElementById("status");
 const form = document.getElementById("form");
 const text = document.getElementById("text");
+const fileInput = document.getElementById("file");
+const attachButton = document.getElementById("attach");
 const startButton = document.getElementById("start");
 const ringButton = document.getElementById("ring");
 const endButton = document.getElementById("end");
@@ -289,6 +297,32 @@ endButton.addEventListener("click", async () => {
   await poll();
 });
 
+attachButton.addEventListener("click", () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+  fileInput.value = "";
+  if (!file) {
+    return;
+  }
+  if (!file.name.toLowerCase().endsWith(".txt")) {
+    statusLine.textContent = "Only .txt files are accepted";
+    return;
+  }
+
+  try {
+    await api("/api/send-file", {
+      filename: file.name,
+      text: await file.text()
+    });
+    await poll();
+  } catch (err) {
+    statusLine.textContent = "Upload failed: " + err.message;
+  }
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const message = text.value.trim();
@@ -334,6 +368,8 @@ class TelexWeb(txBase.TelexBase):
         self._line_width = int(params.get('line_width', 69))
         self._max_history = int(params.get('max_history', 200))
         self._max_message_chars = int(params.get('max_message_chars', 800))
+        self._max_file_chars = int(params.get('max_file_chars', 20000))
+        self._max_request_bytes = int(params.get('max_request_bytes', self._max_file_chars * 4 + 4096))
         self._ring_command = params.get('ring_command', RING_COMMAND)
         self._teletype_end_sources = set(params.get('teletype_end_sources', ['piC']))
 
@@ -444,6 +480,26 @@ class TelexWeb(txBase.TelexBase):
 
     # -----
 
+    def send_text_file(self, filename, text):
+        filename = self._clean_filename(filename)
+        if not filename.lower().endswith('.txt'):
+            raise ValueError("only .txt files are accepted")
+        text = self._clean_file_text(text)
+        if len(text) > self._max_file_chars:
+            raise ValueError("file is too large")
+
+        with self._lock:
+            if not self._active:
+                self._rx_buffer.append(self._ring_command)
+                self._rx_buffer.append('\x1bA')
+                self._active = True
+                self._add_event_locked('system', 'Chat started')
+
+            self._add_event_locked('web', 'Attached file: {}'.format(filename))
+            self._rx_buffer.extend(self._format_file_for_teletype(text))
+
+    # -----
+
     def get_events(self, since):
         with self._lock:
             events = [event.copy() for event in self._events if event['id'] > since]
@@ -489,6 +545,10 @@ class TelexWeb(txBase.TelexBase):
                         data = self._read_json()
                         device.send_web_message(data.get('text', ''))
                         self._send_json({'ok': True})
+                    elif parsed.path == '/api/send-file':
+                        data = self._read_json()
+                        device.send_text_file(data.get('filename', ''), data.get('text', ''))
+                        self._send_json({'ok': True})
                     else:
                         self._send_text(404, 'not found')
                 except ValueError as e:
@@ -502,7 +562,7 @@ class TelexWeb(txBase.TelexBase):
                     length = int(self.headers.get('Content-Length', '0'))
                 except ValueError:
                     length = 0
-                if length > 16384:
+                if length > device._max_request_bytes:
                     raise ValueError("request is too large")
                 raw = self.rfile.read(length)
                 if not raw:
@@ -560,6 +620,20 @@ class TelexWeb(txBase.TelexBase):
 
     # -----
 
+    def _clean_filename(self, filename):
+        filename = str(filename or '').strip()
+        filename = filename.replace('\\', '/').split('/')[-1]
+        return filename[:120]
+
+    # -----
+
+    def _clean_file_text(self, text):
+        if text is None:
+            return ''
+        return str(text)
+
+    # -----
+
     def _format_for_teletype(self, text):
         lines = []
         raw_lines = text.split('\n')
@@ -567,6 +641,11 @@ class TelexWeb(txBase.TelexBase):
             prefix = 'WEB: ' if nr == 0 else '     '
             lines.extend(self._wrap_line(prefix + raw))
         return '\r\n' + '\r\n'.join(lines) + '\r\n'
+
+    # -----
+
+    def _format_file_for_teletype(self, text):
+        return '\r\n\r\n' + text
 
     # -----
 
