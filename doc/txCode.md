@@ -72,6 +72,9 @@ piTelex coding values:
 - 3: Zuse
 - 4: Siemens T100
 
+For Siemens T100 output, `%`, `$`, and `£` are sent in the figures register on
+the same code positions as the letters `F`, `G`, and `H`.
+
 ### Links
 
 http://rabbit.eng.miami.edu/info/baudot.html   <<< wrong figs order!
