@@ -324,6 +324,18 @@ def process_data():
         if c:
             new_data = True
             l.debug("read {!r} from {!r}".format(c, in_device))
+            if len(c) > 1 and c[0] == '\x1b':
+                for out_device in DEVICES:
+                    if out_device != in_device:
+                        observe = getattr(out_device, 'observe', None)
+                        if not observe:
+                            continue
+                        try:
+                            observe(c, in_device.id)
+                        except (KeyboardInterrupt, SystemExit):
+                            raise
+                        except Exception as e:
+                            l.warning("Uncaught Exception in {}.observe({!r}), {!r}: {!r}".format(out_device.id, c, in_device.id, e))
             for out_device in DEVICES:
                 if out_device != in_device:
                     l.debug("writing {!r} to {!r}".format(c, out_device))
@@ -440,4 +452,3 @@ def test():
 
 if __name__== "__main__":
     main()
-

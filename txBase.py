@@ -30,6 +30,9 @@ class TelexBase:
     def write(self, a:str, source:str):
         pass
 
+    def observe(self, a:str, source:str):
+        pass
+
     def idle(self):
         pass
 
@@ -43,4 +46,3 @@ class TelexBase:
         pass
 
 #######
-

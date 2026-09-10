@@ -335,6 +335,7 @@ class TelexWeb(txBase.TelexBase):
         self._max_history = int(params.get('max_history', 200))
         self._max_message_chars = int(params.get('max_message_chars', 800))
         self._ring_command = params.get('ring_command', RING_COMMAND)
+        self._teletype_end_sources = set(params.get('teletype_end_sources', ['piC']))
 
         self._rx_buffer = []
         self._incoming = ''
@@ -371,17 +372,26 @@ class TelexWeb(txBase.TelexBase):
         with self._lock:
             if len(a) != 1:
                 if a in ('\x1bST', '\x1bZ', '\x1bZZ'):
-                    self._rx_buffer.clear()
-                    self._finish_incoming_locked()
-                    self._active = False
+                    self._finish_chat_locked('Chat ended')
                 elif a == '\x1bWB':
-                    self._rx_buffer.clear()
-                    self._finish_incoming_locked()
-                    self._active = False
+                    self._finish_chat_locked('Chat ended')
                 return
 
             if self._active and source in self._input_sources:
                 self._record_teletype_char_locked(a)
+
+    # -----
+
+    def observe(self, a:str, source:str):
+        if len(a) <= 1 or a[0] != '\x1b':
+            return
+        if source not in self._teletype_end_sources:
+            return
+        if a[1:] not in ('ST', 'Z', 'ZZ', 'WB'):
+            return
+
+        with self._lock:
+            self._finish_chat_locked('Chat ended by teletype')
 
     # =====
 
@@ -410,8 +420,7 @@ class TelexWeb(txBase.TelexBase):
             self._finish_incoming_locked()
             if self._active:
                 self._rx_buffer.append('\x1bST')
-            self._active = False
-            self._add_event_locked('system', 'Chat ended')
+            self._finish_chat_locked('Chat ended', clear_output=False)
 
     # -----
 
@@ -599,6 +608,17 @@ class TelexWeb(txBase.TelexBase):
         self._incoming = ''
         if text:
             self._add_event_locked('tty', text)
+
+    # -----
+
+    def _finish_chat_locked(self, event_text, clear_output=True):
+        was_active = self._active
+        if clear_output:
+            self._rx_buffer.clear()
+        self._finish_incoming_locked()
+        self._active = False
+        if was_active:
+            self._add_event_locked('system', event_text)
 
 
 #######
