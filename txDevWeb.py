@@ -673,11 +673,15 @@ class TelexWeb(txBase.TelexBase):
         filename = txCode.BaudotMurrayCode.translate(filename).strip()
         header = 'ATTACHMENT START: {}'.format(filename)
         footer = 'ATTACHMENT END: {}'.format(filename)
+        text = self._wrap_file_text(text)
 
         if text and not text.endswith('\r\n'):
             text += '\r\n'
 
-        return '\r\n\r\n' + header + '\r\n' + text + footer + '\r\n'
+        return '\r\n\r\n' + \
+            '\r\n'.join(self._wrap_file_line(header)) + '\r\n' + \
+            text + \
+            '\r\n'.join(self._wrap_file_line(footer)) + '\r\n'
 
     # -----
 
@@ -691,6 +695,35 @@ class TelexWeb(txBase.TelexBase):
             self._printer_buffer_size = max(0, int(text))
         except (TypeError, ValueError):
             pass
+
+    # -----
+
+    def _wrap_file_text(self, text):
+        lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+        wrapped = []
+        for line in lines:
+            wrapped.extend(self._wrap_file_line(line))
+        return '\r\n'.join(wrapped)
+
+    # -----
+
+    def _wrap_file_line(self, line):
+        if line == '':
+            return ['']
+
+        wrapped = []
+        while len(line) > self._line_width:
+            split_at = line.rfind(' ', 0, self._line_width + 1)
+            if split_at <= 0:
+                split_at = self._line_width
+                wrapped.append(line[:split_at])
+                line = line[split_at:]
+            else:
+                wrapped.append(line[:split_at].rstrip())
+                line = line[split_at + 1:]
+
+        wrapped.append(line)
+        return wrapped
 
     # -----
 
